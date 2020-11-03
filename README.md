@@ -23,9 +23,8 @@ Start the app
 
 Reset your password to log in for the first time. The username is 'admin'
 
-The site can be made persistent and listen at a proper URL through a variety of means.
+The site can be made persistent and listen at a proper URL through a variety of means. [Linux](https://docs.microsoft.com/en-us/aspnet/core/host-and-deploy/linux-nginx?view=aspnetcore-3.1) [Windows](https://docs.microsoft.com/en-us/aspnet/core/tutorials/publish-to-iis?view=aspnetcore-3.1&tabs=visual-studio) 
 
-[Linux](!https://docs.microsoft.com/en-us/aspnet/core/host-and-deploy/linux-nginx?view=aspnetcore-3.1), [Windows](!https://docs.microsoft.com/en-us/aspnet/core/tutorials/publish-to-iis?view=aspnetcore-3.1&tabs=visual-studio) 
 To rebuild the CSS & JS bundles if you've made changes
 
     npm install (One time only, if you don't already have gulp installed globally)
@@ -39,7 +38,7 @@ Inside the /SimpleBotDiscord folder
 
     npm install
 
-[Create a Discord bot](!https://discordpy.readthedocs.io/en/latest/discord.html)
+[Create a Discord bot](https://discordpy.readthedocs.io/en/latest/discord.html)
 
 Follow the instructions to join the bot to your channel
 
