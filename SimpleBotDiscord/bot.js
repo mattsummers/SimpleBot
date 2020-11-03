@@ -207,8 +207,12 @@ class bot {
     // Perform appropriate word substitutions
     translateMessage(message, username, messageObject) {
         message = message.replace("{username}", username);
-        message = message.replace("{randominsult}", this.chooseRandom(this.state.randomInsults));
-        message = message.replace("{randomuser}", this.chooseRandomUser(messageObject));
+        if (message.includes("{randominsult}")) {
+            message = message.replace("{randominsult}", this.chooseRandom(this.state.randomInsults));
+        }
+        if (message.includes("{randomuser}")) {
+            message = message.replace("{randomuser}", this.chooseRandomUser(messageObject));
+        }
         return message;
     }
 
@@ -222,11 +226,12 @@ class bot {
     }
 
     // Given a message, choose a random user from that message's channel
-    chooseRandomUser(message) {
+    async chooseRandomUser(message) {
         if (!message.guild) {
             return (`<@${message.author.id}>`);
         }
-        let onlineUsers = message.guild.members.filter(member => member.presence.status !== "offline" &&
+        let allUsers = await message.guild.members.fetch({ withPresences: true });
+        let onlineUsers = allUsers.filter(member => member.presence.status !== "offline" &&
             member.username !== message.author.username &&
             member.id !== this.state.clientId);
         onlineUsers = Array.from(onlineUsers.values());
