@@ -1,0 +1,38 @@
+﻿@model SimpleBotWeb.Models.Views.Entries.EntriesRandomInsultsViewModel
+
+@{
+    ViewBag.Title = "Random insults";
+}
+
+<div class="container">
+    <div class="row">
+        <div class="col-12">
+            <h1>@ViewData["Title"]</h1>
+            <hr />
+
+            @Html.WriteMessages(TempData)
+
+            <table class="table table-striped table-sm">
+                <thead>
+                <tr>
+                    <th>Insult</th>
+                    <th>Actions</th>
+                </tr>
+                </thead>
+                @foreach (var insult in Model.RandomInsults)
+                {
+                    <tr>
+                        <td>@insult.Insult</td>
+                        <td><form method="post" action="@Url.Action("RandomInsultsDelete")"><input type="hidden" name="RandomInsultId" value="@insult.RandomInsultId"/><input type="submit" class="btn btn-danger btn-sm" value="Delete" onclick="return(confirm('Sure?'))"/></form></td>
+                    </tr>
+                }
+            </table>
+            
+            <h2>Add new</h2>
+            <form method="post" action="@Url.Action("RandomInsults")">
+                <input type="text" class="form-control form-control-sm" placeholder="Insult" name="Insult" maxlength="50"/><br/>
+                <input type="submit" class="btn btn-primary" value="Save"/>
+            </form>
+        </div>
+    </div>
+</div>

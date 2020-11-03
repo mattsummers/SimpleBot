@@ -1,0 +1,22 @@
+﻿@model SimpleBotWeb.Models.Views.Home.HomeIndexViewModel
+@{
+    ViewData["Title"] = "Remote administration";
+}
+
+<div class="container">
+    <div class="row">
+        <div class="col-12">
+            <h1>@ViewData["Title"]</h1>
+            <hr />
+            @Html.WriteMessages(TempData)
+
+            @foreach (var news in Model.NewsEntries)
+            {
+                @Html.SafeDecode(news.Content, HtmlDecodeMethod.SafeHtml, false)
+                <br/>
+            }
+            <br />
+            @Html.Raw(ViewBag.Configuration["HomepageText"])
+        </div>
+    </div>
+</div>

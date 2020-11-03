@@ -1,0 +1,47 @@
+﻿@model SimpleBotWeb.Models.Views.Admin.AdminNewsViewModel
+
+
+@{
+    ViewBag.Title = "News entries";
+}
+
+<div class="container">
+    <div class="row">
+        <div class="col-12">
+            <h1>@ViewData["Title"]</h1>
+            <hr />
+
+            @Html.WriteMessages(TempData)
+
+            <form method="post" action="@Url.Action("NewsEditSave", "Admin", null)">
+                <input type="hidden" name="id" value="@Model.News.NewsId" />
+
+                <p>
+                    <label for="DatePostedUtc">Date posted</label>
+                    <input class="form-control" type="date" value="@Model.News.DatePostedUtc.ToString("yyyy-MM-dd")" name="DatePostedUTC" />
+                </p>
+
+                <p>
+                    <label for="Content">Content</label>
+                    <textarea rows="20 "class="form-control" name="Content">@Model.News.Content</textarea>
+                </p>
+
+                <input type="submit" class="btn btn-primary" /> 
+                @if (Model.News.NewsId > 0)
+                {
+                    <input type="button" class="btn btn-danger" value="Delete" onclick="document.getElementById('deleteForm').submit()"/>
+                }
+
+            </form>
+            
+            <form id="deleteForm" class="mt-3" method="post" action="@Url.Action("NewsDelete", "Admin", null)" onsubmit="return(confirm('Are you sure?'))">
+                <input type="hidden" name="id" value="@Model.News.NewsId" />
+            </form>
+
+
+            <a href="@Url.Action("News", "Admin")">Back to news entries</a><br/>
+            <a href="@Url.Action("Index", "Admin")">Back to admin menus</a>
+
+        </div>
+    </div>
+</div>

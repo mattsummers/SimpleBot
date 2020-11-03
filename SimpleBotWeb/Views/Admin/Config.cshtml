@@ -1,0 +1,31 @@
+﻿@model SimpleBotWeb.Models.Views.Admin.AdminConfigViewModel
+
+@{
+    ViewBag.Title = "Configuration";
+}
+
+<div class="container">
+    <div class="row">
+        <div class="col-12">
+            <h1>@ViewData["Title"]</h1>
+            <hr />
+
+            @Html.WriteMessages(TempData)
+            <form method="post" action="@Url.Action("SaveConfig")">
+                <p>
+                    Footer text
+                    <textarea rows="10" class="form-control" name="FooterText">@Model.Config["FooterText"]</textarea>
+                </p>
+                
+                <p>
+                    Homepage text
+                    <textarea rows="10" class="form-control" name="HomepageText">@Model.Config["HomepageText"]</textarea>
+                </p>
+                
+                <input type="submit" class="btn btn-primary" value="Save"/>
+            </form>
+            <br/>
+            <a href="@Url.Action("Index", "Admin")">Back to admin menus</a>
+        </div>
+    </div>
+</div>

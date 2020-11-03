@@ -1,0 +1,22 @@
+﻿@model object
+
+@{
+    ViewBag.Title = "Administration";
+}
+
+<div class="container">
+    <div class="row">
+        <div class="col-12">
+            <h1>@ViewData["Title"]</h1>
+            <hr />
+
+            @Html.WriteMessages(TempData)
+            
+        <ul>
+            <li><a href="@Url.Action("Config", "Admin")">Site customization</a></li>
+            <li><a href="@Url.Action("News", "Admin")">News entries</a></li>
+        </ul>
+
+        </div>
+    </div>
+</div>

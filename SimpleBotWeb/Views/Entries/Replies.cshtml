@@ -1,0 +1,235 @@
+﻿@using System.Net
+@using System.Text
+@using Microsoft.AspNetCore.Html
+@using SimpleBotWeb.Models.DataObjects
+@model SimpleBotWeb.Models.Views.Entries.EntriesRepliesViewModel
+@{
+    ViewBag.Title = "Entries";
+    var grouped = Model.Entries.GroupBy(x => new { Key = x.Phrase, x.StartsWith }, x => x).OrderBy(x => x.Key.Key);
+}
+
+<div class="container">
+    <div class="row">
+        <div class="col-12">
+            <h1>@ViewData["Title"]</h1>
+            <hr />
+
+            @Html.WriteMessages(TempData)
+
+            <small>
+                👁 = Hidden, only you can see it<br />
+                › = beginning of line
+            </small>
+            <div class="text-right" style="margin-bottom: 5px"><button type="button" class="btn btn-primary btn-sm btnAddNew">+ Add new</button></div>
+
+            @foreach (var entryGroup in grouped)
+            {
+                var canSeeAny = entryGroup.Any(x => !x.Hidden || x.MemberId == Model.MemberId);
+                if (canSeeAny)
+                {
+                    @WriteEntries(entryGroup.OrderBy(x => x.Hidden));
+                }
+            }
+
+            @{
+                var totalHiddenByOtherUsers = Model.Entries.Count(x => x.Hidden && x.MemberId != Model.MemberId);
+                if (totalHiddenByOtherUsers > 0)
+                {
+                    <div class='text-muted'>Total hidden entries: @totalHiddenByOtherUsers</div>
+                }
+            }
+
+            <div id="editForm" style="display: none">
+                <form method="post" action="@Url.Action("Add")">
+                    <input type="hidden" name="EntryId" id="EntryId" />
+                    <h2 id="modalTitle"></h2>
+                    <div class="form-group row">
+                        <label for="StartsWith" class="col-sm-2 col-form-label">Starts with</label>
+                        <div class="col-sm-10">
+                            <p>
+                                <input id="StartsWith" type="checkbox" name="StartsWith" value="True" /> If checked, the phrase must be at the start of a message
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="form-group row">
+                        <label for="Phrase" class="col-sm-2 col-form-label">Phrase</label>
+                        <div class="col-sm-10">
+                            <input id="Phrase" class="form-control form-control-sm" name="Phrase" maxlength="50" />
+                            Always converted to lowercase. Regular expressions supported. <br />
+                            Avoid using special characters like (, ), [, ], $, ?, \, |, and . unless you know what you're doing.
+                        </div>
+                    </div>
+
+                    <div class="form-group row">
+                        <label for="Hidden" class="col-sm-2 col-form-label">Hidden</label>
+                        <div class="col-sm-10">
+                            <p>
+                                <input id="Hidden" type="checkbox" name="Hidden" value="True" /> If checked, the phrase will be hidden from other users (Unless they also add it)
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="form-group row">
+                        <label for="Key" class="col-sm-2 col-form-label">Response</label>
+                        <div class="col-sm-10">
+                            <textarea class="form-control form-control-sm" name="Response" id="Response" rows="10"></textarea>
+                            <p>Limit of 60K characters. Don't get crazy.</p>
+                        </div>
+                    </div>
+
+                    <div class="form-group row">
+                        <label for="Key" class="col-sm-2 col-form-label">Repeatable</label>
+                        <div class="col-sm-10">
+                            <input id="AllowRepeat" type="checkbox" name="AllowRepeat" value="True" /> If checked, the bot will permit it to be repeated over a short period of time.
+                        </div>
+                    </div>
+
+                    <input type="submit" class="btn btn-primary" value="Save" />
+                    <input type="button" class="btn btn-danger" id="btnDelete" value="Delete" onclick="confirmDelete()" />
+                </form>
+                <form method="post" action="@Url.Action("Delete")" id="frmDelete">
+                    <input type="hidden" name="EntryId" id="EntryId" />
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts{
+    <script>
+        function confirmDelete() {
+            bootbox.confirm("Are you sure?",
+                function (result) {
+                    if (result) {
+                        $("#frmDelete").submit();
+                    }
+                });
+        }
+
+        document.addEventListener("DOMContentLoaded",
+            function (event) {
+                
+
+                $(".btnAddNew").click(function () {
+                    $("#btnDelete").hide();
+                    var phrase = $(this).data("phrase");
+                    var startsWith = $(this).data("startswith");
+                    if (!phrase) {
+                        phrase = "";
+                    }
+                    if (!startsWith) {
+                        startsWith = false;
+                    }
+
+                    // Since we're making a copy of the DOM, we need to manipulate the attributes
+                    // so the change will be reflected in .html()
+
+                    $("#editForm #modalTitle").html("Add a response");
+                    $("#editForm #EntryId").attr("value", "");
+                    $("#editForm #Phrase").attr("value", phrase);
+                    $("#editForm #Hidden").removeAttr("checked");
+                    $("#editForm #Response").html("");
+                    if (startsWith === "True") {
+                        $("#editForm #StartsWith").attr("checked", true);
+                    } else {
+                        $("#editForm #StartsWith").removeAttr("checked");
+                    }
+
+                    bootbox.dialog({
+                        message: $("#editForm").html(),
+                        onEscape: true,
+                        backdrop: true
+                    });
+                });
+
+                $(".btnEdit").click(function () {
+
+                    var entryId = $(this).data('entryid');
+
+                    $.ajax("@Url.Action("LoadReply")",
+                        {
+                            data: { entryId: entryId }
+                        }).done(function (data, status) {
+                        if (status === "success") {
+                            $("#btnDelete").show();
+                            $("#editForm #modalTitle").html("Edit a response");
+                            $("#editForm #EntryId").attr("value", data.entryId);
+                            $("#editForm #Phrase").attr("value", data.phrase);
+                            $("#editForm #Response").html(data.response);
+
+                            if (data.startsWith) {
+                                $("#editForm #StartsWith").attr("checked", true);
+                            } else {
+                                $("#editForm #StartsWith").removeAttr("checked");
+                            }
+
+                            if (data.hidden) {
+                                $("#editForm #Hidden").attr("checked", true);
+                            } else {
+                                $("#editForm #Hidden").removeAttr("checked");
+                            }
+
+                            if (data.allowRepeat) {
+                                $("#editForm #AllowRepeat").attr("checked", true);
+                            } else {
+                                $("#editForm #AllowRepeat").removeAttr("checked");
+                            }
+
+                            bootbox.dialog({
+                                message: $("#editForm").html(),
+                                onEscape: true,
+                                backdrop: true
+                            });
+                        }
+                    });
+                });
+
+            });
+    </script>
+}
+
+@functions {
+
+private HtmlString WriteEntries(IOrderedEnumerable<Entry> orderBy)
+{
+    var hiddenCount = 0;
+    var first = orderBy.FirstOrDefault();
+    if (first == null)
+    {
+        return new HtmlString("");
+    }
+
+    var sb = new StringBuilder();
+
+    sb.Append($"<div class='bg-light' id='entry{first.Phrase}' style='border-radius: 5px; margin-bottom: 10px; padding: 5px;'>");
+    sb.Append("<div class='row'>");
+    sb.Append("<div class='col-sm-4'>");
+    sb.AppendLine($"<h3>{(first.StartsWith ? "› " : "")}{WebUtility.HtmlEncode(first.Phrase)} <button data-phrase='{WebUtility.HtmlEncode(first.Phrase)}' data-startswith='{first.StartsWith}' class='btnAddNew btn btn-secondary btn-sm'>+ add</button></h3>");
+    sb.Append("</div>");
+    sb.Append("<div class='col-sm-8'>");
+    foreach (var option in orderBy)
+    {
+        if (option.MemberId == Model.MemberId || !option.Hidden)
+        {
+            sb.Append($"{(option.Hidden ? "👁" : "")} " + WebUtility.HtmlEncode(UtilityHelper.TrimAtNextWhitespace(option.Response, 200)));
+            sb.Append(" <input type='button' class='btn btn-sm btn-link btnEdit' data-entryid='" + option.EntryId + "' value='Edit'><br>");
+        }
+        else
+        {
+            hiddenCount++;
+        }
+    }
+    if (hiddenCount > 0)
+    {
+        sb.Append($"<div class='text-muted small'>{hiddenCount} hidden entries</div>");
+    }
+    sb.Append("</div>");
+    sb.Append("</div>");
+    sb.Append("</div>");
+
+
+    return new HtmlString(sb.ToString());
+}
+
+}

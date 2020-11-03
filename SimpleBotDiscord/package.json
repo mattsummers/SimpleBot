@@ -1,0 +1,13 @@
+{
+  "name": "simple-bot",
+  "version": "0.0.0",
+  "description": "SimpleBot",
+  "main": "app.js",
+  "author": {
+    "name": "Matt"
+  },
+  "dependencies": {
+    "discord.js": "^12.4.1",
+    "request": "^2.88.2"
+  }
+}

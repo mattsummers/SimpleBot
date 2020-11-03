@@ -1,0 +1,32 @@
+﻿@model SimpleBotWeb.Models.Views.Admin.AdminNewsViewModel
+
+
+@{
+    ViewBag.Title = "News entries";
+}
+
+<div class="container">
+    <div class="row">
+        <div class="col-12">
+            <h1>@ViewData["Title"]</h1>
+            <hr />
+
+            @Html.WriteMessages(TempData)
+            
+            <p><a class="btn btn-primary" href="@Url.Action("NewsCreate")">➕ Add news entry</a></p>
+            <table class="table table-condensed table-striped">
+                @foreach (var item in Model.NewsEntries)
+                {
+                <tr>
+                    <td>@item.DatePostedUtc.ToShortDateString()</td>
+                    <td>@Html.SafeDecode(item.Content, HtmlDecodeMethod.SafeHtml, false)</td>
+                    <td><a class="btn btn-light" href="@Url.Action("NewsEdit", new { id= item.NewsId})">Edit</a></td>
+                </tr>
+                } 
+            </table>
+            
+            <a href="@Url.Action("Index", "Admin")">Back to admin menus</a>
+            
+        </div>
+    </div>
+</div>

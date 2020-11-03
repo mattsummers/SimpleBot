@@ -1,0 +1,30 @@
+﻿@model SimpleBotWeb.Models.Views.Account.AccountLoginViewModel
+
+@{
+    ViewBag.Title = "Logon";
+}
+<div class="container">
+    <div class="row">
+        <div class="col-12">
+        <h1>@ViewData["Title"]</h1>
+        <hr/>
+        @Html.WriteMessages(TempData)
+
+            <form method="post" action="@Url.Action("Login")">
+                @Html.AntiForgeryToken()
+                <p>
+                    <input type="text" class="form-control" name="Email" placeholder="Email" value="@Model.Email" maxlength="50"/>
+                </p>
+                <p>
+                    <input type="password" class="form-control" name="Password"/>
+                </p>
+                <p>
+                    <input type="submit" class="btn btn-primary" value="Submit"/>
+                    <a href="@Url.Action("ForgotPassword")" class="btn btn-secondary">I forgot my password</a>
+                </p>
+                
+            </form>
+        </div>
+    </div>
+</div>
+
