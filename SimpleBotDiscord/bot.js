@@ -7,6 +7,7 @@ class bot {
     // Application state global object
     state = {
         defaultChannel: "",
+        defaultGuild: "",
 
         // Cached data for the !why command
         lastReplyOwner: "",
@@ -16,9 +17,10 @@ class bot {
         // An in-memory cache of recent replies, backed by persistent storage
         recentReplies: [],
 
-        // Replies and random insults are populated from the web interface
+        // Cached data
         replies: {},
         randomInsults: {},
+        allUsers: [],
 
         // The bot's client ID
         clientId : ""
@@ -30,6 +32,7 @@ class bot {
 
         // Bootstrap the system, get a reference to the default room and load the response data for the first time.
         this.state.defaultChannel = client.channels.cache.find(x => x.name === constants.defaultRoom);
+        this.state.defaultGuild = client.guilds.cache.find(x => x.name === constants.defaultGuild);
         this.state.recentReplies = this.loadRecentRepliesFromDatafile(constants.recentRepliesFilename);
 
         const currentDate = new Date();
@@ -39,11 +42,16 @@ class bot {
     async startBackgroundPolling(baseUrl) {
         this.state.replies = await this.loadReplies(baseUrl).catch();
         this.state.randomInsults = await this.loadInsults(baseUrl).catch();
-
+        //this.state.allUsers = await this.getAllUsers(this.state.defaultGuild);
         const currentDate = new Date();
         setTimeout(() => this.startBackgroundPolling(baseUrl).then(() => { console.log("Updated " + currentDate.toLocaleDateString() + " " + currentDate.toLocaleTimeString()) }), 10000);
     }
 
+    getAllUsers(guild) {
+        return new Promise((resolve, reject) => {
+            resolve(guild.members.fetch());
+        });
+    }
     loadReplies(baseUrl) {
         return new Promise((resolve, reject) => {
             const url = baseUrl + "feed/list";
@@ -169,7 +177,7 @@ class bot {
             }
 
             reply = reply.replace("!SAY ", "");
-            this.sendMessage(this.constants.defaultChannel, this.translateMessage(reply, message.author.username, message));
+            this.sendMessage(this.state.defaultChannel, this.translateMessage(reply, message.author.username, message));
             return;
         }
 
@@ -211,7 +219,9 @@ class bot {
             message = message.replace("{randominsult}", this.chooseRandom(this.state.randomInsults));
         }
         if (message.includes("{randomuser}")) {
-            message = message.replace("{randomuser}", this.chooseRandomUser(messageObject));
+            // Doesn't work. No longer care.
+            //message = message.replace("{randomuser}", this.chooseRandomUser(messageObject));
+            message = message.replace("{randomuser}", this.chooseRandom(this.state.randomInsults));
         }
         return message;
     }
@@ -226,23 +236,18 @@ class bot {
     }
 
     // Given a message, choose a random user from that message's channel
-    async chooseRandomUser(message) {
-        if (!message.guild) {
-            return (`<@${message.author.id}>`);
-        }
-        let allUsers = await message.guild.members.fetch({ withPresences: true });
-        let onlineUsers = allUsers.filter(member => member.presence.status !== "offline" &&
+    chooseRandomUser(message) {
+        let onlineUsers = this.state.allUsers.filter(member => member.presence.status !== "offline" &&
             member.username !== message.author.username &&
             member.id !== this.state.clientId);
         onlineUsers = Array.from(onlineUsers.values());
 
         if (onlineUsers.length > 0) {
             const randomUser = this.chooseRandom(onlineUsers);
-            return `<@${randomUser.id}>`;
-        } else {
-            return this.translateMessage("{randominsult}");
-        }
+            return(`<@${randomUser.id}>`);
+        } 
 
+        return(this.translateMessage("{randominsult}"));
     }
 
     sendMessage(channel, message) {
