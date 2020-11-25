@@ -258,7 +258,7 @@ class bot {
     addToRecentReplies(filename, entryId) {
         this.state.recentReplies.push(entryId);
         while (this.state.recentReplies.length > this.constants.maximumRecentReplies) {
-            this.recentReplies.shift();
+            this.state.recentReplies.shift();
         }
         fs.writeFileSync(filename, JSON.stringify(this.state.recentReplies));
     }

@@ -15,7 +15,22 @@ const client = new discord.Client();
 
 // Don't crash the entire app if there's a minor error. Or even a major one.
 client.on('error', (err) => {
-        console.error(err);
+    console.error(currentDate.toLocaleDateString() + " " + err);
+});
+
+client.on("disconnect", () => {
+    console.log(currentDate.toLocaleDateString() + " disconnected from Discord server");
+    process.exit(1);
+});
+
+client.on("reconnecting", () => {
+    console.log(currentDate.toLocaleDateString() + " reconnecting");
+    process.exit(1);
+});
+
+client.on('shardError', error => {
+    console.error(currentDate.toLocaleDateString() + " shardError " + error);
+    process.exit(1);
 });
 
 // Only initialize once the client is fully connected to Discord
